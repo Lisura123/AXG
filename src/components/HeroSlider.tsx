@@ -74,7 +74,7 @@ export default function HeroSlider({ onNavigate }: HeroSliderProps) {
   };
 
   return (
-    <div className="relative h-[80vh] md:h-[100vh] min-h-[600px] md:min-h-[700px] overflow-hidden group">
+    <div className="relative h-[100vh] min-h-[700px] overflow-hidden group">
       {/* Animated Background Particles */}
       <div className="absolute inset-0 z-5">
         {[...Array(50)].map((_, i) => (
@@ -113,22 +113,11 @@ export default function HeroSlider({ onNavigate }: HeroSliderProps) {
               index === currentSlide ? "scale-100" : "scale-105"
             }`}
           >
-            <div className="w-full h-full bg-gray-900">
-              <img
-                src={slide.image}
-                alt={slide.title}
-                className="w-full h-full object-cover object-center filter brightness-110 contrast-105"
-                style={{
-                  objectPosition: "center center",
-                  minHeight: "100%",
-                  minWidth: "100%",
-                }}
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = "none";
-                }}
-              />
-            </div>
+            <img
+              src={slide.image}
+              alt={slide.title}
+              className="w-full h-full object-cover object-center filter brightness-110 contrast-105"
+            />
           </div>
 
           {/* Content Container */}
