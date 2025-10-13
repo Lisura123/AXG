@@ -1,5 +1,18 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
 
+// Simple unique id generator to avoid key collisions
+let __notifCounter = 0;
+const generateUniqueId = () => {
+  try {
+    const c = (globalThis as any)?.crypto;
+    if (c && typeof c.randomUUID === "function") return c.randomUUID();
+  } catch {}
+  __notifCounter = (__notifCounter + 1) % Number.MAX_SAFE_INTEGER;
+  return `${Date.now()}-${__notifCounter}-${Math.random()
+    .toString(36)
+    .slice(2, 8)}`;
+};
+
 export interface NotificationContextType {
   showNotification: (
     message: string,
@@ -40,7 +53,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
   const showNotification = useCallback(
     (message: string, type: "success" | "error" | "info" = "success") => {
       const notification: Notification = {
-        id: Date.now().toString(),
+        id: generateUniqueId(),
         message,
         type,
         timestamp: Date.now(),
