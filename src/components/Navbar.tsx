@@ -144,7 +144,7 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
               src="/axg logo.png"
               alt="AXG - Power Your Creativity"
               className={`w-auto group-hover:scale-105 transition-all duration-300 filter drop-shadow-sm ${
-                isScrolled ? "h-12" : "h-14"
+                isScrolled ? "h-14" : "h-16"
               }`}
             />
           </button>
