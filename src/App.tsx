@@ -20,6 +20,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 interface PageData {
   productId?: string;
   category?: string;
+  subcategory?: string;
 }
 
 function AppContent() {
@@ -46,6 +47,7 @@ function AppContent() {
           <ProductsPage
             onNavigate={handleNavigate}
             initialCategory={pageData.category}
+            initialSubcategory={pageData.subcategory}
           />
         )}
         {currentPage === "product-detail" && pageData.productId && (

@@ -244,7 +244,8 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
                                   key={subcat.name}
                                   onClick={() => {
                                     onNavigate("products", {
-                                      category: subcat.category,
+                                      category: "Lens Filters",
+                                      subcategory: subcat.category,
                                     });
                                     setShowProductsDropdown(false);
                                     setShowLensFiltersSubmenu(false);
@@ -384,7 +385,8 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
                                   key={subcat.name}
                                   onClick={() => {
                                     onNavigate("products", {
-                                      category: subcat.category,
+                                      category: "Lens Filters",
+                                      subcategory: subcat.category,
                                     });
                                     setIsMobileMenuOpen(false);
                                   }}

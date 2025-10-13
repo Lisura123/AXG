@@ -51,17 +51,22 @@ interface Category {
 interface ProductsPageProps {
   onNavigate: (page: string, data?: any) => void;
   initialCategory?: string;
+  initialSubcategory?: string;
 }
 
 export default function ProductsPage({
   onNavigate,
   initialCategory,
+  initialSubcategory,
 }: ProductsPageProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedSubcategory, setSelectedSubcategory] = useState<
+    string | undefined
+  >(undefined);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
@@ -134,6 +139,14 @@ export default function ProductsPage({
     }
   }, [initialCategory, categories]);
 
+  // Apply initial subcategory when provided (e.g., from Navbar lens filter sizes)
+  useEffect(() => {
+    if (initialSubcategory) {
+      console.log("🎯 Applying initialSubcategory:", initialSubcategory);
+      setSelectedSubcategory(initialSubcategory);
+    }
+  }, [initialSubcategory]);
+
   useEffect(() => {
     fetchProducts();
   }, [selectedCategories, searchQuery, currentPage]);
@@ -168,12 +181,18 @@ export default function ProductsPage({
         params.categories = selectedCategories.join(",");
       }
 
+      // Include subcategory filter when provided (Lens Filters sizes like 67mm)
+      if (selectedSubcategory) {
+        params.subcategory = selectedSubcategory;
+      }
+
       if (searchQuery.trim()) {
         params.search = searchQuery.trim();
       }
 
       console.log("🔍 Fetching products with params:", params);
       console.log("🔍 Selected categories:", selectedCategories);
+      console.log("🔍 Selected subcategory:", selectedSubcategory);
 
       const response = await productApi.getAll(params);
       console.log("📦 Products API response:", response);
