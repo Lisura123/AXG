@@ -116,7 +116,7 @@ export default function HeroSlider({ onNavigate }: HeroSliderProps) {
             <img
               src={slide.image}
               alt={slide.title}
-              className="w-full h-full object-cover object-center filter brightness-110 contrast-105"
+              className="w-full h-full object-cover object-bottom md:object-center filter brightness-110 contrast-105"
             />
           </div>
 
