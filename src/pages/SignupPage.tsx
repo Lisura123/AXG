@@ -11,6 +11,7 @@ import {
   Shield,
   Zap,
   Camera,
+  Chrome,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import PageTransition from "../components/PageTransition";
@@ -109,6 +110,36 @@ export default function SignupPage({ onNavigate }: SignupPageProps) {
       setLoading(false);
     } else {
       onNavigate("home");
+    }
+  };
+
+  const handleGoogleSignup = async () => {
+    setError("");
+    setLoading(true);
+
+    try {
+      // TODO: Implement Google OAuth integration for signup
+      console.log("Google signup clicked");
+      setError("Google signup integration coming soon!");
+      setLoading(false);
+    } catch (error) {
+      setError("Failed to sign up with Google. Please try again.");
+      setLoading(false);
+    }
+  };
+
+  const handleAppleSignup = async () => {
+    setError("");
+    setLoading(true);
+
+    try {
+      // TODO: Implement Apple Sign-In integration for signup
+      console.log("Apple signup clicked");
+      setError("Apple Sign-In integration coming soon!");
+      setLoading(false);
+    } catch (error) {
+      setError("Failed to sign up with Apple. Please try again.");
+      setLoading(false);
     }
   };
 
@@ -403,6 +434,57 @@ export default function SignupPage({ onNavigate }: SignupPageProps) {
                   )}
                 </button>
               </form>
+
+              {/* Social Login Section */}
+              <div className="mt-8">
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-200"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-4 bg-white text-gray-500 font-medium">
+                      Or sign up with
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-6 grid grid-cols-2 gap-4">
+                  {/* Google Signup Button */}
+                  <button
+                    type="button"
+                    onClick={handleGoogleSignup}
+                    disabled={loading}
+                    className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md transform hover:-translate-y-0.5 group"
+                  >
+                    <Chrome className="w-5 h-5 mr-3 text-blue-500 group-hover:scale-110 transition-transform duration-300" />
+                    <span>Google</span>
+                  </button>
+
+                  {/* Apple Signup Button */}
+                  <button
+                    type="button"
+                    onClick={handleAppleSignup}
+                    disabled={loading}
+                    className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md transform hover:-translate-y-0.5 group"
+                  >
+                    <svg
+                      className="w-5 h-5 mr-3 text-gray-800 group-hover:scale-110 transition-transform duration-300"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+                    </svg>
+                    <span>Apple</span>
+                  </button>
+                </div>
+
+                {/* Privacy Notice for Social Signup */}
+                <div className="mt-4 text-center">
+                  <p className="text-xs text-gray-500">
+                    By continuing, you agree to our terms and privacy policy
+                  </p>
+                </div>
+              </div>
 
               {/* Enhanced Footer */}
               <div className="mt-8 pt-6 border-t border-gray-100">
