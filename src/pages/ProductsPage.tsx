@@ -101,11 +101,35 @@ export default function ProductsPage({
 
   useEffect(() => {
     if (initialCategory && categories.length > 0) {
+      console.log("🎯 Processing initialCategory:", initialCategory);
+
+      // Handle lens filter subcategories (e.g., "67mm Filters" -> "67mm")
+      if (initialCategory.includes("mm Filters")) {
+        const filterSize = initialCategory.replace(" Filters", "");
+        console.log("🔍 Detected lens filter size:", filterSize);
+        setSelectedCategories([filterSize]);
+        return;
+      }
+
+      // Handle regular categories
       const category = categories.find(
         (c) => c.name.toLowerCase() === initialCategory.toLowerCase()
       );
       if (category) {
+        console.log("✅ Found matching category:", category.name);
         setSelectedCategories([category.name]);
+      } else {
+        console.log("❌ No matching category found for:", initialCategory);
+        // Try to find a partial match
+        const partialMatch = categories.find(
+          (c) =>
+            c.name.toLowerCase().includes(initialCategory.toLowerCase()) ||
+            initialCategory.toLowerCase().includes(c.name.toLowerCase())
+        );
+        if (partialMatch) {
+          console.log("🎯 Found partial match:", partialMatch.name);
+          setSelectedCategories([partialMatch.name]);
+        }
       }
     }
   }, [initialCategory, categories]);
@@ -149,9 +173,18 @@ export default function ProductsPage({
       }
 
       console.log("🔍 Fetching products with params:", params);
+      console.log("🔍 Selected categories:", selectedCategories);
 
       const response = await productApi.getAll(params);
       console.log("📦 Products API response:", response);
+
+      if (response.success && response.data.products) {
+        console.log("📦 Products found:", response.data.products.length);
+        console.log(
+          "📦 Product categories:",
+          response.data.products.map((p: Product) => p.category)
+        );
+      }
 
       if (response.success) {
         const products = response.data.products || [];
@@ -208,6 +241,7 @@ export default function ProductsPage({
 
   const toggleCategory = (categoryName: string) => {
     console.log("🔄 Toggling category:", categoryName);
+    console.log("🔄 Current selectedCategories:", selectedCategories);
     setSelectedCategories((prev) => {
       const newCategories = prev.includes(categoryName)
         ? prev.filter((c) => c !== categoryName)

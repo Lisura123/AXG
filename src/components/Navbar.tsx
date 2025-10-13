@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Menu,
   X,
@@ -23,6 +23,46 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const { user, isAdmin, signOut } = useAuth();
 
+  // Timeout refs for better hover control
+  const dropdownTimeout = useRef<NodeJS.Timeout | null>(null);
+  const submenuTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  // Helper functions for dropdown management
+  const handleDropdownEnter = () => {
+    if (dropdownTimeout.current) {
+      clearTimeout(dropdownTimeout.current);
+      dropdownTimeout.current = null;
+    }
+    setShowProductsDropdown(true);
+  };
+
+  const handleDropdownLeave = () => {
+    if (dropdownTimeout.current) {
+      clearTimeout(dropdownTimeout.current);
+    }
+    dropdownTimeout.current = setTimeout(() => {
+      setShowProductsDropdown(false);
+      setShowLensFiltersSubmenu(false);
+    }, 150); // Small delay to prevent flickering
+  };
+
+  const handleSubmenuEnter = () => {
+    if (submenuTimeout.current) {
+      clearTimeout(submenuTimeout.current);
+      submenuTimeout.current = null;
+    }
+    setShowLensFiltersSubmenu(true);
+  };
+
+  const handleSubmenuLeave = () => {
+    if (submenuTimeout.current) {
+      clearTimeout(submenuTimeout.current);
+    }
+    submenuTimeout.current = setTimeout(() => {
+      setShowLensFiltersSubmenu(false);
+    }, 150); // Small delay to prevent flickering
+  };
+
   // Track scroll position for enhanced sticky navbar behavior
   useEffect(() => {
     const handleScroll = () => {
@@ -32,6 +72,18 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (dropdownTimeout.current) {
+        clearTimeout(dropdownTimeout.current);
+      }
+      if (submenuTimeout.current) {
+        clearTimeout(submenuTimeout.current);
+      }
+    };
   }, []);
 
   const navItems = [
@@ -52,9 +104,9 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
       category: "Lens Filters",
       hasSubmenu: true,
       submenu: [
-        { name: "58mm Filters", category: "58mm Filters" },
-        { name: "67mm Filters", category: "67mm Filters" },
-        { name: "77mm Filters", category: "77mm Filters" },
+        { name: "58mm Filters", category: "58mm" },
+        { name: "67mm Filters", category: "67mm" },
+        { name: "77mm Filters", category: "77mm" },
       ],
     },
     {
@@ -102,12 +154,8 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
               <div
                 key={item.id}
                 className="relative"
-                onMouseEnter={() =>
-                  item.hasDropdown && setShowProductsDropdown(true)
-                }
-                onMouseLeave={() =>
-                  item.hasDropdown && setShowProductsDropdown(false)
-                }
+                onMouseEnter={() => item.hasDropdown && handleDropdownEnter()}
+                onMouseLeave={() => item.hasDropdown && handleDropdownLeave()}
               >
                 <button
                   onClick={() => onNavigate(item.id)}
@@ -128,15 +176,13 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
                 </button>
                 {item.hasDropdown && showProductsDropdown && (
                   <div
-                    className="absolute top-full left-0 mt-3 w-64 bg-white rounded-xl shadow-2xl py-4 animate-slideInUp z-50 border border-gray-100 backdrop-blur-sm"
+                    className="absolute top-full left-0 mt-1 w-64 bg-white rounded-xl shadow-2xl py-4 animate-slideInUp z-50 border border-gray-100 backdrop-blur-sm"
                     style={{
                       boxShadow:
                         "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.05)",
                     }}
-                    onMouseLeave={() => {
-                      setShowProductsDropdown(false);
-                      setShowLensFiltersSubmenu(false);
-                    }}
+                    onMouseEnter={handleDropdownEnter}
+                    onMouseLeave={handleDropdownLeave}
                   >
                     <div className="px-4 pb-3 mb-2 border-b border-gray-100">
                       <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -148,10 +194,10 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
                         key={cat.name}
                         className="relative"
                         onMouseEnter={() =>
-                          cat.hasSubmenu && setShowLensFiltersSubmenu(true)
+                          cat.hasSubmenu && handleSubmenuEnter()
                         }
                         onMouseLeave={() =>
-                          cat.hasSubmenu && setShowLensFiltersSubmenu(false)
+                          cat.hasSubmenu && handleSubmenuLeave()
                         }
                       >
                         <button
@@ -180,11 +226,13 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
                           showLensFiltersSubmenu &&
                           cat.submenu && (
                             <div
-                              className="absolute left-full top-0 ml-2 w-52 bg-white rounded-xl shadow-2xl py-3 animate-slideInRight border border-gray-100"
+                              className="absolute left-full top-0 ml-1 w-52 bg-white rounded-xl shadow-2xl py-3 animate-slideInRight border border-gray-100"
                               style={{
                                 boxShadow:
                                   "0 25px 30px -5px rgba(0, 0, 0, 0.15), 0 15px 15px -5px rgba(0, 0, 0, 0.08)",
                               }}
+                              onMouseEnter={handleSubmenuEnter}
+                              onMouseLeave={handleSubmenuLeave}
                             >
                               <div className="px-3 pb-2 mb-2 border-b border-gray-100">
                                 <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -298,20 +346,75 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
         >
           <div className="px-4 py-4 space-y-3">
             {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => {
-                  onNavigate(item.id);
-                  setIsMobileMenuOpen(false);
-                }}
-                className={`block w-full text-left px-4 py-2 rounded transition-colors ${
-                  currentPage === item.id
-                    ? "bg-[#1d1d1b] text-white"
-                    : "text-gray-300 hover:bg-[#1d1d1b]"
-                }`}
-              >
-                {item.label}
-              </button>
+              <div key={item.id}>
+                {item.hasDropdown ? (
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => {
+                        onNavigate(item.id);
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className={`block w-full text-left px-4 py-2 rounded transition-colors ${
+                        currentPage === item.id
+                          ? "bg-[#1d1d1b] text-white"
+                          : "text-gray-300 hover:bg-[#1d1d1b]"
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                    <div className="ml-4 space-y-1">
+                      {productCategories.map((cat) => (
+                        <div key={cat.name}>
+                          <button
+                            onClick={() => {
+                              onNavigate(
+                                "products",
+                                cat.category ? { category: cat.category } : {}
+                              );
+                              setIsMobileMenuOpen(false);
+                            }}
+                            className="block w-full text-left px-3 py-1.5 text-sm text-gray-400 hover:text-gray-200 hover:bg-[#1d1d1b]/50 rounded transition-colors"
+                          >
+                            {cat.name}
+                          </button>
+                          {cat.hasSubmenu && cat.submenu && (
+                            <div className="ml-4 space-y-1">
+                              {cat.submenu.map((subcat) => (
+                                <button
+                                  key={subcat.name}
+                                  onClick={() => {
+                                    onNavigate("products", {
+                                      category: subcat.category,
+                                    });
+                                    setIsMobileMenuOpen(false);
+                                  }}
+                                  className="block w-full text-left px-3 py-1 text-xs text-gray-500 hover:text-gray-300 hover:bg-[#1d1d1b]/30 rounded transition-colors"
+                                >
+                                  {subcat.name}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      onNavigate(item.id);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`block w-full text-left px-4 py-2 rounded transition-colors ${
+                      currentPage === item.id
+                        ? "bg-[#1d1d1b] text-white"
+                        : "text-gray-300 hover:bg-[#1d1d1b]"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                )}
+              </div>
             ))}
             <div className="border-t border-gray-600 pt-3 space-y-2">
               {user ? (
