@@ -88,14 +88,9 @@ export default function ProfilePage({ onNavigate }: ProfilePageProps) {
     try {
       // Validate password fields if any password field is filled
       const isChangingPassword =
-        passwords.currentPassword ||
-        passwords.newPassword ||
-        passwords.confirmPassword;
+        passwords.newPassword || passwords.confirmPassword;
 
       if (isChangingPassword) {
-        if (!passwords.currentPassword) {
-          throw new Error("Current password is required to change password");
-        }
         if (!passwords.newPassword) {
           throw new Error("New password is required");
         }
@@ -350,43 +345,7 @@ export default function ProfilePage({ onNavigate }: ProfilePageProps) {
                         </p>
                       </div>
 
-                      {/* Current Password */}
-                      <div className="space-y-2 mb-6">
-                        <label className="block text-sm font-semibold text-[#1d1d1b] mb-2">
-                          Current Password
-                        </label>
-                        <div className="relative group">
-                          <Key className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-[#404040] transition-colors duration-300" />
-                          <input
-                            type={showPasswords.current ? "text" : "password"}
-                            value={passwords.currentPassword}
-                            onChange={(e) =>
-                              setPasswords({
-                                ...passwords,
-                                currentPassword: e.target.value,
-                              })
-                            }
-                            className="w-full pl-12 pr-12 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#404040]/20 focus:border-[#404040] transition-all duration-300 bg-gray-50 focus:bg-white text-gray-900"
-                            placeholder="Enter your current password"
-                          />
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setShowPasswords({
-                                ...showPasswords,
-                                current: !showPasswords.current,
-                              })
-                            }
-                            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#404040] transition-colors duration-300"
-                          >
-                            {showPasswords.current ? (
-                              <EyeOff className="w-5 h-5" />
-                            ) : (
-                              <Eye className="w-5 h-5" />
-                            )}
-                          </button>
-                        </div>
-                      </div>
+                      {/* Current password not required */}
 
                       {/* New Password */}
                       <div className="space-y-2 mb-6">
