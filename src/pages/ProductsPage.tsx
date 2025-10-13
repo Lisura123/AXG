@@ -81,7 +81,7 @@ export default function ProductsPage({
   // Fetch products when page loads and when filters change
   useEffect(() => {
     fetchProducts();
-  }, [selectedCategories, searchQuery, currentPage]);
+  }, [selectedCategories, selectedSubcategory, searchQuery, currentPage]);
 
   // Auto-expand categories with subcategories
   useEffect(() => {
@@ -112,7 +112,12 @@ export default function ProductsPage({
       if (initialCategory.includes("mm Filters")) {
         const filterSize = initialCategory.replace(" Filters", "");
         console.log("🔍 Detected lens filter size:", filterSize);
-        setSelectedCategories([filterSize]);
+        // Select Lens Filters as parent and apply subcategory (size)
+        setSelectedCategories(["Lens Filters"]);
+        setSelectedSubcategory(filterSize);
+        setExpandedCategories((prev) =>
+          prev.includes("Lens Filters") ? prev : [...prev, "Lens Filters"]
+        );
         return;
       }
 
@@ -144,12 +149,15 @@ export default function ProductsPage({
     if (initialSubcategory) {
       console.log("🎯 Applying initialSubcategory:", initialSubcategory);
       setSelectedSubcategory(initialSubcategory);
+      // Ensure Lens Filters is selected and expanded when a size is given
+      setSelectedCategories((prev) =>
+        prev.includes("Lens Filters") ? prev : ["Lens Filters"]
+      );
+      setExpandedCategories((prev) =>
+        prev.includes("Lens Filters") ? prev : [...prev, "Lens Filters"]
+      );
     }
   }, [initialSubcategory]);
-
-  useEffect(() => {
-    fetchProducts();
-  }, [selectedCategories, searchQuery, currentPage]);
 
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -236,6 +244,7 @@ export default function ProductsPage({
     setSelectedCategories([]);
     setSearchQuery("");
     setCurrentPage(1);
+    setSelectedSubcategory(undefined);
   };
 
   const getSubcategories = (parentCategory: Category) => {
@@ -265,6 +274,18 @@ export default function ProductsPage({
       const newCategories = prev.includes(categoryName)
         ? prev.filter((c) => c !== categoryName)
         : [...prev, categoryName];
+      // If Lens Filters is being deselected, clear any selected subcategory (size)
+      if (!newCategories.includes("Lens Filters") && selectedSubcategory) {
+        setSelectedSubcategory(undefined);
+      }
+      // If enabling a non-Lens category while a subcategory (size) is set, clear the subcategory to avoid conflicts
+      if (
+        categoryName !== "Lens Filters" &&
+        !prev.includes(categoryName) &&
+        selectedSubcategory
+      ) {
+        setSelectedSubcategory(undefined);
+      }
       console.log("🔄 Updated selectedCategories:", newCategories);
       return newCategories;
     });
@@ -284,7 +305,24 @@ export default function ProductsPage({
   // Use products directly since backend handles pagination
   const currentProducts = products;
 
-  const hasActiveFilters = selectedCategories.length > 0 || searchQuery !== "";
+  const hasActiveFilters =
+    selectedCategories.length > 0 ||
+    !!selectedSubcategory ||
+    searchQuery !== "";
+
+  const handleSelectSubcategory = (
+    parentCategoryName: string,
+    subName: string
+  ) => {
+    // Toggle behavior: selecting the same subcategory clears it
+    setSelectedSubcategory((prev) => (prev === subName ? undefined : subName));
+    // Ensure only the parent category is active to avoid category/subcategory conflicts
+    setSelectedCategories([parentCategoryName]);
+    // Expand the parent for visibility
+    setExpandedCategories((prev) =>
+      prev.includes(parentCategoryName) ? prev : [...prev, parentCategoryName]
+    );
+  };
 
   return (
     <PageTransition>
@@ -481,8 +519,8 @@ export default function ProductsPage({
                     const isExpanded = expandedCategories.includes(
                       category.name
                     );
-                    const hasSelectedSubcategories = subcategories.some((sub) =>
-                      selectedCategories.includes(sub.name)
+                    const hasSelectedSubcategories = subcategories.some(
+                      (sub) => sub.name === selectedSubcategory
                     );
 
                     // Debug logging for Lens Filters
@@ -568,9 +606,8 @@ export default function ProductsPage({
                         {subcategories.length > 0 && isExpanded && (
                           <div className="ml-6 mt-3 space-y-2 border-l-4 border-[#404040]/20 pl-6 bg-gradient-to-r from-gray-50/50 to-transparent rounded-r-lg py-3">
                             {subcategories.map((sub, index) => {
-                              const isSubSelected = selectedCategories.includes(
-                                sub.name
-                              );
+                              const isSubSelected =
+                                selectedSubcategory === sub.name;
                               return (
                                 <div
                                   key={`${category._id}-${index}`}
@@ -583,12 +620,22 @@ export default function ProductsPage({
                                   <input
                                     type="checkbox"
                                     checked={isSubSelected}
-                                    onChange={() => toggleCategory(sub.name)}
+                                    onChange={() =>
+                                      handleSelectSubcategory(
+                                        category.name,
+                                        sub.name
+                                      )
+                                    }
                                     className="w-4 h-4 text-[#404040] border-2 border-gray-400 rounded focus:ring-[#404040] focus:ring-2"
                                   />
                                   <div
                                     className="flex items-center flex-1 cursor-pointer"
-                                    onClick={() => toggleCategory(sub.name)}
+                                    onClick={() =>
+                                      handleSelectSubcategory(
+                                        category.name,
+                                        sub.name
+                                      )
+                                    }
                                   >
                                     <div
                                       className={`w-3 h-3 rounded-full mr-3 ${
