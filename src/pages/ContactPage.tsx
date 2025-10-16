@@ -9,7 +9,6 @@ import {
   Users,
   Globe,
 } from "lucide-react";
-import { supabase } from "../lib/supabase";
 import PageTransition from "../components/PageTransition";
 
 export default function ContactPage() {
@@ -29,22 +28,32 @@ export default function ContactPage() {
     setError("");
     setSuccess(false);
 
-    const { error: submitError } = await supabase
-      .from("contact_submissions")
-      .insert({
-        name: formData.name,
-        email: formData.email,
-        subject: formData.subject,
-        message: formData.message,
+    try {
+      const response = await fetch("http://localhost:8070/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          subject: formData.subject,
+          message: formData.message,
+        }),
       });
 
-    setLoading(false);
+      const data = await response.json();
 
-    if (submitError) {
+      if (response.ok && data.success) {
+        setSuccess(true);
+        setFormData({ name: "", email: "", subject: "", message: "" });
+      } else {
+        setError(data.message || "Failed to send message. Please try again.");
+      }
+    } catch (error) {
       setError("Failed to send message. Please try again.");
-    } else {
-      setSuccess(true);
-      setFormData({ name: "", email: "", subject: "", message: "" });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -122,16 +131,10 @@ export default function ContactPage() {
                       </p>
                       <div className="space-y-2">
                         <a
-                          href="mailto:info@axg.com"
+                          href="mailto:info@axgphoto.com"
                           className="block text-[#404040] hover:text-[#1d1d1b] font-semibold transition-colors duration-200 hover:underline"
                         >
-                          info@axg.com
-                        </a>
-                        <a
-                          href="mailto:support@axg.com"
-                          className="block text-[#404040] hover:text-[#1d1d1b] font-semibold transition-colors duration-200 hover:underline"
-                        >
-                          support@axg.com
+                          info@axgphoto.com
                         </a>
                       </div>
                     </div>

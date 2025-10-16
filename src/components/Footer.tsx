@@ -122,7 +122,7 @@ export default function Footer({ onNavigate }: FooterProps) {
             <ul className="space-y-2 mb-4">
               <li className="flex items-center space-x-2 text-gray-400 text-sm">
                 <Mail className="w-4 h-4" />
-                <span>info@axg.com</span>
+                <span>info@axgphoto.com</span>
               </li>
             </ul>
             <div className="flex space-x-4">
