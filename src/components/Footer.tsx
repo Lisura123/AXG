@@ -122,7 +122,12 @@ export default function Footer({ onNavigate }: FooterProps) {
             <ul className="space-y-2 mb-4">
               <li className="flex items-center space-x-2 text-gray-400 text-sm">
                 <Mail className="w-4 h-4" />
-                <span>info@axgphoto.com</span>
+                <a
+                  href="mailto:info@axgphoto.com"
+                  className="hover:text-white transition-colors"
+                >
+                  info@axgphoto.com
+                </a>
               </li>
             </ul>
             <div className="flex space-x-4">

@@ -22,10 +22,9 @@ interface AdminDashboardProps {
 
 export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
   const { user, isAdmin } = useAuth();
-  const [activeTab, setActiveTab] = useState<
-    "products" | "users" | "reviews" | "contacts"
-  >("products");
-  const [userCount, setUserCount] = useState<number>(0);
+  const [activeTab, setActiveTab] = useState<"products" | "users" | "reviews">(
+    "products"
+  );
 
   useEffect(() => {
     if (!user || !isAdmin) {
@@ -42,17 +41,13 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
       <div className="min-h-screen bg-gray-50">
         <div className="bg-gradient-to-r from-[#404040] to-[#1d1d1b] text-white py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center">
               <div className="flex items-center">
                 <LayoutDashboard className="w-10 h-10 mr-4" />
                 <div>
                   <h1 className="text-4xl font-bold mb-2">Admin Dashboard</h1>
                   <p className="text-gray-200">Manage your AXG store</p>
                 </div>
-              </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold">{userCount}</div>
-                <div className="text-gray-200">Total Users</div>
               </div>
             </div>
           </div>
@@ -134,33 +129,13 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                   <MessageSquare className="w-5 h-5" />
                   <span>Reviews</span>
                 </button>
-                <button
-                  onClick={() => setActiveTab("contacts")}
-                  className={`flex items-center space-x-2 px-6 py-4 font-medium transition-colors ${
-                    activeTab === "contacts"
-                      ? "border-b-2 border-[#1d1d1b] text-[#1d1d1b]"
-                      : "text-gray-600 hover:text-[#1d1d1b]"
-                  }`}
-                >
-                  <MessageSquare className="w-5 h-5" />
-                  <span>Contact</span>
-                </button>
               </div>
             </div>
           </div>
 
           {activeTab === "products" && <ProductManagement />}
-          {activeTab === "users" && (
-            <UserManagement onUserCountChange={setUserCount} />
-          )}
+          {activeTab === "users" && <UserManagement />}
           {activeTab === "reviews" && <ReviewManagement />}
-          {activeTab === "contacts" && (
-            <div className="p-8">
-              <h2 className="text-2xl font-bold">
-                Contact Management - Coming Soon
-              </h2>
-            </div>
-          )}
         </div>
       </div>
     </PageTransition>
@@ -349,80 +324,6 @@ function ReviewManagement() {
                 <h4 className="font-semibold text-gray-900">{review.title}</h4>
               </div>
               <p className="text-gray-700">{review.comment}</p>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-*/
-
-// ContactManagement component commented out - needs backend API implementation
-/*
-function ContactManagement() {
-  const [contacts, setContacts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchContacts();
-  }, []);
-
-  const fetchContacts = async () => {
-    const { data } = await supabase
-      .from("contact_submissions")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (data) setContacts(data);
-    setLoading(false);
-  };
-
-  const updateStatus = async (id: string, status: string) => {
-    await supabase.from("contact_submissions").update({ status }).eq("id", id);
-    fetchContacts();
-  };
-
-  return (
-    <div>
-      <h2 className="text-2xl font-bold text-[#1d1d1b] mb-6">
-        Contact Submissions
-      </h2>
-      {loading ? (
-        <div className="text-center py-8">Loading...</div>
-      ) : (
-        <div className="space-y-4">
-          {contacts.map((contact) => (
-            <div key={contact.id} className="bg-white rounded-lg shadow-md p-6">
-              <div className="flex justify-between items-start mb-3">
-                <div>
-                  <h4 className="font-semibold text-gray-900">
-                    {contact.name}
-                  </h4>
-                  <p className="text-sm text-gray-600">{contact.email}</p>
-                  <p className="text-sm text-gray-500">
-                    {new Date(contact.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-                <select
-                  value={contact.status}
-                  onChange={(e) => updateStatus(contact.id, e.target.value)}
-                  className={`px-3 py-1 text-sm rounded-full ${
-                    contact.status === "pending"
-                      ? "bg-yellow-100 text-yellow-800"
-                      : contact.status === "replied"
-                      ? "bg-green-100 text-green-800"
-                      : "bg-gray-100 text-gray-800"
-                  }`}
-                >
-                  <option value="pending">Pending</option>
-                  <option value="replied">Replied</option>
-                  <option value="archived">Archived</option>
-                </select>
-              </div>
-              <h5 className="font-medium text-gray-900 mb-2">
-                {contact.subject}
-              </h5>
-              <p className="text-gray-700">{contact.message}</p>
             </div>
           ))}
         </div>
