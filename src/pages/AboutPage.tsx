@@ -63,7 +63,7 @@ export default function AboutPage() {
                 </div>
                 <div className="text-center">
                   <div className="text-3xl md:text-4xl font-bold text-white">
-                    50+
+                    12+
                   </div>
                   <div className="text-sm text-gray-300 uppercase tracking-wider">
                     Products
