@@ -251,7 +251,7 @@ const ReviewDisplay: React.FC<ReviewDisplayProps> = ({ productId }) => {
     <div className="bg-white rounded-lg shadow-md p-6 mt-8">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-2xl font-bold text-gray-900">Customer Reviews</h3>
-        {user && (
+        {user ? (
           <button
             onClick={() => setShowReviewForm(true)}
             className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
@@ -259,6 +259,10 @@ const ReviewDisplay: React.FC<ReviewDisplayProps> = ({ productId }) => {
             <Plus className="w-4 h-4" />
             <span>Write Review</span>
           </button>
+        ) : (
+          <div className="text-sm text-gray-600 bg-gray-100 px-4 py-2 rounded-lg">
+            <span>Login to write review</span>
+          </div>
         )}
       </div>
 
