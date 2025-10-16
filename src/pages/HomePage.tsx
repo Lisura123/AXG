@@ -92,7 +92,7 @@ export default function HomePage({ onNavigate }: HomePageProps) {
       icon: Filter,
       image: "/assets/images/categories/lens-filter.jpg",
     },
-    { name: "Camera Backpacks", icon: Backpack, image: "/axg logo.png" },
+    { name: "Camera Backpacks", icon: Backpack, image: "/camera-backpack.jpg" },
   ];
 
   return (
