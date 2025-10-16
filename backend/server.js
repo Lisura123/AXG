@@ -97,6 +97,7 @@ app.get("/", (req, res) => {
 const userRoutes = require("./routes/userRoutes");
 const productRoutes = require("./routes/productRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
+const contactRoutes = require("./routes/contactRoutes");
 
 // Import error handling middleware
 const { errorHandler, notFound } = require("./middleware/errorHandler");
@@ -105,6 +106,7 @@ const { errorHandler, notFound } = require("./middleware/errorHandler");
 app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/contact", contactRoutes);
 
 // Error handling middleware
 app.use(notFound);
