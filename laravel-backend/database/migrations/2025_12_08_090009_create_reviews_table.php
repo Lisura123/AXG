@@ -1,0 +1,44 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('reviews', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('product_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->integer('rating');
+            $table->string('title', 100);
+            $table->text('comment', 1000);
+            $table->boolean('is_approved')->default(false);
+            $table->integer('is_helpful')->default(0);
+            $table->boolean('is_reported')->default(false);
+            $table->text('report_reason')->nullable();
+            $table->text('admin_response')->nullable();
+            $table->json('tags')->nullable();
+            $table->json('images')->nullable();
+            $table->boolean('verified_purchase')->default(false);
+            $table->timestamps();
+            
+            $table->index('product_id');
+            $table->index('user_id');
+            $table->index('is_approved');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('reviews');
+    }
+};
