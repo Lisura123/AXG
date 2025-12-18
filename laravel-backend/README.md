@@ -1,6 +1,19 @@
-# AXG Photo Laravel Backend
+# AXG Photo Laravel Backend - Enhanced Edition
 
-This is the Laravel backend for the AXG Photo e-commerce application, converted from the original Node.js/Express backend.
+Modern Laravel backend for the AXG Photo e-commerce application with Filament Admin Panel, Inertia.js integration, and advanced Laravel features.
+
+## 🌟 New Features
+
+### ✨ What's Enhanced
+- ✅ **Filament v4 Admin Panel** - Beautiful admin interface at `/admin123`
+- ✅ **Inertia.js Integration** - Server-side rendering for React frontend
+- ✅ **Event-Driven Architecture** - Events, Listeners, and Jobs
+- ✅ **Notification System** - Email and database notifications
+- ✅ **Service Layer Pattern** - Clean, maintainable code structure
+- ✅ **API Resources** - Consistent API responses
+- ✅ **Advanced Middleware** - Caching, activity tracking
+- ✅ **Background Jobs** - Queue processing for heavy tasks
+- ✅ **Comprehensive Seeders** - Ready-to-use sample data
 
 ## Database Setup
 
@@ -12,37 +25,49 @@ This is the Laravel backend for the AXG Photo e-commerce application, converted 
 - PHP 8.2+ (included with XAMPP)
 - MySQL (included with XAMPP)
 - Composer (installed in project root as `composer.phar`)
+- Node.js & NPM (for Inertia.js frontend)
 
-## Installation
+## Quick Start
 
-1. **Install Dependencies:**
-   ```bash
-   cd laravel-backend
-   /Applications/XAMPP/xamppfiles/bin/php ../composer.phar install
-   ```
+### 1. Install Dependencies
+```bash
+cd laravel-backend
+/Applications/XAMPP/xamppfiles/bin/php composer.phar install
+npm install
+```
 
-2. **Configure Environment:**
-   - Database is already configured for `axg_database` in `.env`
+### 2. Configure Environment
+Database is already configured for `axg_database` in `.env`
 
-3. **Run Migrations:**
-   ```bash
-   /Applications/XAMPP/xamppfiles/bin/php artisan migrate
-   ```
+### 3. Run Migrations & Seed
+```bash
+/Applications/XAMPP/xamppfiles/bin/php artisan migrate
+/Applications/XAMPP/xamppfiles/bin/php artisan db:seed
+```
 
-4. **Seed Database:**
-   ```bash
-   /Applications/XAMPP/xamppfiles/bin/php artisan db:seed
-   ```
+### 4. Start Development Servers
 
-## Running the Server
-
-Start the Laravel development server:
-
+**Terminal 1 - Laravel:**
 ```bash
 /Applications/XAMPP/xamppfiles/bin/php artisan serve --host=127.0.0.1 --port=8001
 ```
 
-The API will be available at: `http://localhost:8001/api`
+**Terminal 2 - Queue Worker:**
+```bash
+/Applications/XAMPP/xamppfiles/bin/php artisan queue:work
+```
+
+**Terminal 3 - Vite (Inertia):**
+```bash
+npm run dev
+```
+
+## Access Points
+
+- **API:** `http://localhost:8001/api`
+- **Filament Admin:** `http://localhost:8001/admin123`
+- **Web (Inertia):** `http://localhost:8001`
+- **Health Check:** `http://localhost:8001/up`
 
 ## Default Users
 

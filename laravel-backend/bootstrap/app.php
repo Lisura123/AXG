@@ -14,6 +14,13 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            'cache.response' => \App\Http\Middleware\CacheResponse::class,
+            'track.activity' => \App\Http\Middleware\TrackUserActivity::class,
+        ]);
+
+        // Add Inertia middleware
+        $middleware->web(append: [
+            \App\Http\Middleware\HandleInertiaRequests::class,
         ]);
 
         // Prevent Laravel from redirecting unauthenticated API requests

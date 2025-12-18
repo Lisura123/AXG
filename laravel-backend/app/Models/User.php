@@ -26,15 +26,6 @@ class User extends Authenticatable
         'role',
         'is_active',
         'is_email_verified',
-        'avatar',
-        'address_street',
-        'address_city',
-        'address_state',
-        'address_zip_code',
-        'address_country',
-        'pref_email_notifications',
-        'pref_sms_notifications',
-        'pref_newsletter',
         'last_login',
     ];
 
@@ -62,14 +53,27 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_active' => 'boolean',
             'is_email_verified' => 'boolean',
-            'pref_email_notifications' => 'boolean',
-            'pref_sms_notifications' => 'boolean',
-            'pref_newsletter' => 'boolean',
             'last_login' => 'datetime',
             'lock_until' => 'datetime',
             'password_reset_expires' => 'datetime',
             'email_verification_expires' => 'datetime',
         ];
+    }
+
+    /**
+     * Get the user's full name (for Filament compatibility)
+     */
+    public function getNameAttribute(): string
+    {
+        return trim("{$this->first_name} {$this->last_name}");
+    }
+
+    /**
+     * Filament requires this method for user name
+     */
+    public function getFilamentName(): string
+    {
+        return $this->name;
     }
 
     /**
