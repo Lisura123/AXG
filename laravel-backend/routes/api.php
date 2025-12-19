@@ -7,6 +7,18 @@ use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\UserController;
 
+Route::get('/', function () {
+    return response()->json([
+        'status' => 'success',
+        'message' => 'AXG Photo API is running',
+        'version' => '1.0.0',
+        'endpoints' => [
+            'admin' => url('/admin123'),
+            'api' => url('/api'),
+        ],
+    ]);
+});
+
 // Public routes
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);

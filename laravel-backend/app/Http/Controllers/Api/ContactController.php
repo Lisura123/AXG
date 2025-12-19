@@ -239,7 +239,7 @@ class ContactController extends Controller
     {
         try {
             Mail::send([], [], function ($message) use ($contact) {
-                $message->to(env('CONTACT_EMAIL', 'info@axgphoto.com'))
+                $message->to(config('mail.contact_to', 'info@axgphoto.com'))
                     ->subject('Contact Form: ' . $contact->subject)
                     ->replyTo($contact->email, $contact->name)
                     ->html($this->getEmailTemplate($contact));

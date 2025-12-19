@@ -115,4 +115,17 @@ return [
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Contact Form Recipient
+    |--------------------------------------------------------------------------
+    |
+    | This address receives notifications from the public contact form.
+    | IMPORTANT: Read via config (not env()) at runtime so it works when
+    | configuration is cached (php artisan config:cache).
+    |
+    */
+
+    'contact_to' => env('CONTACT_EMAIL', 'info@axgphoto.com'),
+
 ];

@@ -11,6 +11,13 @@ import {
 } from "lucide-react";
 import PageTransition from "../components/PageTransition";
 
+const API_BASE_URL = `${
+  import.meta.env.VITE_API_URL ||
+  (window.location.hostname === "localhost"
+    ? "http://localhost:8001"
+    : "https://axgphoto.com")
+}/api`;
+
 export default function ContactPage() {
   const [formData, setFormData] = useState({
     name: "",
@@ -29,7 +36,7 @@ export default function ContactPage() {
     setSuccess(false);
 
     try {
-      const response = await fetch("http://localhost:8070/api/contact", {
+      const response = await fetch(`${API_BASE_URL}/contacts`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

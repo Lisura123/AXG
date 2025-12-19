@@ -11,6 +11,13 @@ import {
 } from "lucide-react";
 import { getImageUrl } from "../lib/api";
 
+const API_BASE_URL = `${
+  import.meta.env.VITE_API_URL ||
+  (window.location.hostname === "localhost"
+    ? "http://localhost:8001"
+    : "https://axgphoto.com")
+}/api`;
+
 interface Review {
   id: number;
   rating: number;
@@ -105,7 +112,7 @@ const ReviewManagement: React.FC<ReviewManagementProps> = () => {
 
       const token = localStorage.getItem("axg_bolt_token");
       const response = await fetch(
-        `http://localhost:8001/api/reviews/admin?${params}`,
+        `${API_BASE_URL}/reviews/admin?${params}`,
         {
           headers: {
             "Accept": "application/json",
@@ -146,7 +153,7 @@ const ReviewManagement: React.FC<ReviewManagementProps> = () => {
       if (response) requestBody.admin_response = response;
 
       const apiResponse = await fetch(
-        `http://localhost:8001/api/reviews/${reviewId}/status`,
+        `${API_BASE_URL}/reviews/${reviewId}/status`,
         {
           method: "PUT",
           headers: {
@@ -188,7 +195,7 @@ const ReviewManagement: React.FC<ReviewManagementProps> = () => {
     try {
       const token = localStorage.getItem("axg_bolt_token");
       const response = await fetch(
-        `http://localhost:8001/api/reviews/${reviewId}/admin`,
+        `${API_BASE_URL}/reviews/${reviewId}/admin`,
         {
           method: "DELETE",
           headers: {

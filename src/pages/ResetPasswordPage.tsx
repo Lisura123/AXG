@@ -2,6 +2,13 @@ import { useState, useEffect } from "react";
 import { Lock, CheckCircle, AlertCircle, Eye, EyeOff } from "lucide-react";
 import PageTransition from "../components/PageTransition";
 
+const API_BASE_URL = `${
+  import.meta.env.VITE_API_URL ||
+  (window.location.hostname === "localhost"
+    ? "http://localhost:8001"
+    : "https://axgphoto.com")
+}/api`;
+
 interface ResetPasswordPageProps {
   token: string;
   onNavigate: (page: string, data?: any) => void;
@@ -83,7 +90,7 @@ export default function ResetPasswordPage({
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/users/reset-password`,
+        `${API_BASE_URL}/users/reset-password`,
         {
           method: "POST",
           headers: {

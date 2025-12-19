@@ -2,6 +2,13 @@ import { useState } from "react";
 import { Mail, ArrowLeft, CheckCircle, AlertCircle } from "lucide-react";
 import PageTransition from "../components/PageTransition";
 
+const API_BASE_URL = `${
+  import.meta.env.VITE_API_URL ||
+  (window.location.hostname === "localhost"
+    ? "http://localhost:8001"
+    : "https://axgphoto.com")
+}/api`;
+
 interface ForgotPasswordPageProps {
   onNavigate: (page: string, data?: any) => void;
 }
@@ -23,7 +30,7 @@ export default function ForgotPasswordPage({
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/users/forgot-password`,
+        `${API_BASE_URL}/users/forgot-password`,
         {
           method: "POST",
           headers: {
