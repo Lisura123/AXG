@@ -228,6 +228,7 @@ class ProductController extends Controller
                 'features' => 'nullable|array',
                 'image_url' => 'nullable|string',
                 'imageURL' => 'nullable|string',
+                'images' => 'nullable|array',
                 'category' => 'required|string|max:255',
                 'subcategory' => 'nullable|string|max:255',
                 'is_active' => 'nullable|boolean',
@@ -266,6 +267,8 @@ class ProductController extends Controller
             // Accept both image_url and imageURL from frontend
             $imageUrl = $request->input('image_url') ?? $request->input('imageURL');
             $product->image_url = $imageUrl && trim($imageUrl) !== '' ? $imageUrl : null;
+            // Additional images (thumbnails)
+            $product->images = $request->input('images', []);
             $product->category = $request->category;
             $product->subcategory = $request->subcategory;
             // Accept both snake_case and camelCase booleans
@@ -334,6 +337,7 @@ class ProductController extends Controller
                 'features' => 'nullable|array',
                 'image_url' => 'nullable|string',
                 'imageURL' => 'nullable|string',
+                'images' => 'nullable|array',
                 'category' => 'nullable|string|max:255',
                 'subcategory' => 'nullable|string|max:255',
                 'is_active' => 'nullable|boolean',
@@ -369,6 +373,7 @@ class ProductController extends Controller
                 'features' => 'features',
                 'image_url' => 'image_url',
                 'imageURL' => 'image_url',
+                'images' => 'images',
                 'category' => 'category',
                 'subcategory' => 'subcategory',
                 'is_active' => 'is_active',

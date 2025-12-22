@@ -35,9 +35,15 @@ function AppContent() {
     setCurrentPage(page);
     setPageData(data || {});
 
-    // Update URL for password reset page
+    // Update URL with relevant query params so refresh works
     if (page === "reset-password" && data?.token) {
       window.history.pushState({}, "", `?page=${page}&token=${data.token}`);
+    } else if (page === "product-detail" && data?.productId) {
+      window.history.pushState(
+        {},
+        "",
+        `?page=${page}&productId=${encodeURIComponent(data.productId)}`
+      );
     } else if (page !== "home") {
       window.history.pushState({}, "", `?page=${page}`);
     } else {
@@ -52,10 +58,14 @@ function AppContent() {
     const urlParams = new URLSearchParams(window.location.search);
     const page = urlParams.get("page");
     const token = urlParams.get("token");
+    const productId = urlParams.get("productId");
 
     if (page === "reset-password" && token) {
       setCurrentPage("reset-password");
       setPageData({ token });
+    } else if (page === "product-detail" && productId) {
+      setCurrentPage("product-detail");
+      setPageData({ productId });
     } else if (page) {
       setCurrentPage(page);
     }

@@ -7,6 +7,7 @@ interface Product {
   description: string;
   features: string[];
   image_url?: string;
+  images?: string[];
   category: string;
   subcategory?: string;
   is_active: boolean;
@@ -39,6 +40,7 @@ interface ProductFormData {
   description: string;
   features: string[];
   imageURL: string;
+  images: string[];
   category: string;
   subcategory: string;
   isActive: boolean;
@@ -51,6 +53,7 @@ const initialFormData: ProductFormData = {
   description: "",
   features: [],
   imageURL: "",
+  images: [],
   category: "",
   subcategory: "",
   isActive: true,
@@ -288,6 +291,7 @@ const ProductManagement: React.FC = () => {
       description: product.description,
       features: product.features || [],
       imageURL: product.image_url || "",
+      images: product.images || [],
       category: product.category,
       subcategory: product.subcategory || "",
       isActive: product.is_active,
@@ -333,6 +337,14 @@ const ProductManagement: React.FC = () => {
     setFormData((prev) => ({
       ...prev,
       features: prev.features.filter((_, i) => i !== index),
+    }));
+  };
+
+  // Remove additional image
+  const removeAdditionalImage = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
     }));
   };
 
@@ -394,6 +406,68 @@ const ProductManagement: React.FC = () => {
       e.target.value = "";
     } finally {
       setUploading(false);
+    }
+  };
+
+  // Handle additional images selection with server upload
+  const handleAdditionalImagesSelect = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const validTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+    ];
+    const maxSize = 5 * 1024 * 1024;
+
+    try {
+      setUploading(true);
+
+      const newImages: string[] = [];
+      for (const file of Array.from(files)) {
+        if (!validTypes.includes(file.type)) {
+          alert(
+            `File "${file.name}" is not a valid image (JPEG, PNG, WebP, GIF) and will be skipped.`
+          );
+          continue;
+        }
+
+        if (file.size > maxSize) {
+          alert(
+            `File "${file.name}" is larger than 5MB and will be skipped.`
+          );
+          continue;
+        }
+
+        try {
+          const response = await adminApi.uploadImage(file);
+          if (response.success && response.data?.imageUrl) {
+            newImages.push(response.data.imageUrl);
+          }
+        } catch (err: any) {
+          console.error("❌ Additional image upload error:", err);
+          alert(
+            `Failed to upload "${file.name}": ${
+              err?.message || "Unknown error"
+            }`
+          );
+        }
+      }
+
+      if (newImages.length > 0) {
+        setFormData((prev) => ({
+          ...prev,
+          images: [...prev.images, ...newImages],
+        }));
+      }
+    } finally {
+      setUploading(false);
+      e.target.value = "";
     }
   };
 
@@ -607,6 +681,12 @@ const ProductManagement: React.FC = () => {
                         <div className="text-sm text-gray-500">
                           SKU: {product.sku || "N/A"}
                         </div>
+                        {product.images && product.images.length > 0 && (
+                          <div className="text-xs text-gray-400 mt-0.5">
+                            {product.images.length} additional image
+                            {product.images.length > 1 ? "s" : ""}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </td>
@@ -983,6 +1063,66 @@ const ProductManagement: React.FC = () => {
                           </div>
                         </div>
                       )}
+                      {/* Additional Images (Thumbnails) */}
+                      <div className="mt-4 border-t pt-3">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Additional Images (Thumbnails)
+                        </label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={handleAdditionalImagesSelect}
+                          disabled={uploading}
+                          className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-1 file:px-4 file:rounded-md file:border-0 file:text-sm file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 ${
+                            uploading ? "opacity-50 cursor-not-allowed" : ""
+                          }`}
+                        />
+                        <p className="mt-1 text-xs text-gray-500">
+                          Upload one or more extra images. These will appear
+                          as thumbnails on the product detail page.
+                        </p>
+                        {formData.images.length > 0 && (
+                          <div className="mt-2 grid grid-cols-4 gap-2">
+                            {formData.images.map((img, index) => (
+                              <div
+                                key={`${img}-${index}`}
+                                className="relative group border border-gray-200 rounded-md overflow-hidden bg-gray-50"
+                              >
+                                <img
+                                  src={getImageUrl(img)}
+                                  alt={`Additional ${index + 1}`}
+                                  className="w-full h-16 object-cover"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display =
+                                      "none";
+                                  }}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => removeAdditionalImage(index)}
+                                  className="absolute top-1 right-1 bg-white/80 text-red-600 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  title="Remove image"
+                                >
+                                  <svg
+                                    className="h-3 w-3"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M6 18L18 6M6 6l12 12"
+                                    />
+                                  </svg>
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
