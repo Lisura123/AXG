@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Str;
+use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
     use HasFactory, Notifiable, HasApiTokens;
 
@@ -152,5 +154,13 @@ class User extends Authenticatable
     public function isLocked()
     {
         return $this->lock_until && $this->lock_until->isFuture();
+    }
+
+    /**
+     * Determine if the user can access the Filament admin panel.
+     */
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return $this->isAdmin();
     }
 }
