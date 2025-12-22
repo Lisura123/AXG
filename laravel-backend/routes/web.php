@@ -13,17 +13,9 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Simple health check route
+// Redirect root to the public website
 Route::get('/', function () {
-    return response()->json([
-        'status' => 'success',
-        'message' => 'AXG Photo API is running',
-        'version' => '1.0.0',
-        'endpoints' => [
-            'admin' => url('/admin123'),
-            'api' => url('/api'),
-        ]
-    ]);
+    return redirect()->away('https://www.axgphoto.com');
 });
 
 // Redirect to admin panel
