@@ -15,6 +15,7 @@ class Product extends Model
         'description',
         'features',
         'image_url',
+        'images',
         'category',
         'subcategory',
         'slug',
@@ -32,6 +33,7 @@ class Product extends Model
 
     protected $casts = [
         'features' => 'array',
+        'images' => 'array',
         'is_active' => 'boolean',
         'is_featured' => 'boolean',
         'rating_average' => 'decimal:2',

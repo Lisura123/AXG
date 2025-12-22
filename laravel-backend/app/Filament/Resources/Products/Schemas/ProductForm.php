@@ -23,7 +23,20 @@ class ProductForm
                     ->default(null)
                     ->columnSpanFull(),
                 FileUpload::make('image_url')
-                    ->image(),
+                    ->label('Main Image')
+                    ->image()
+                    ->directory('uploads')
+                    ->visibility('public'),
+                FileUpload::make('images')
+                    ->label('Additional Images')
+                    ->image()
+                    ->multiple()
+                    ->maxFiles(5)
+                    ->directory('uploads')
+                    ->visibility('public')
+                    ->reorderable()
+                    ->helperText('Upload up to 5 additional product images. These will appear as thumbnails.')
+                    ->columnSpanFull(),
                 TextInput::make('category')
                     ->required(),
                 TextInput::make('subcategory')
