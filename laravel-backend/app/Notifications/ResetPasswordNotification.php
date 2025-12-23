@@ -35,7 +35,10 @@ class ResetPasswordNotification extends Notification
      */
     public function toMail($notifiable): MailMessage
     {
-        $resetUrl = env('FRONTEND_URL', 'https://axgphoto.com') . '?page=reset-password&token=' . $this->token;
+        $frontendUrl = env('FRONTEND_URL', 'https://axgphoto.com');
+        // Remove trailing slash if present
+        $frontendUrl = rtrim($frontendUrl, '/');
+        $resetUrl = $frontendUrl . '/?page=reset-password&token=' . urlencode($this->token);
         
         return (new MailMessage)
             ->subject('Reset Password - AXG Photo')
