@@ -320,18 +320,6 @@ class AuthController extends Controller
             return response()->json(['success' => false, 'message' => 'Password reset failed', 'error' => env('APP_DEBUG') ? $e->getMessage() : 'Server error'], 500);
         }
     }
-            }
-
-            $user->password = $request->password;
-            $user->password_reset_token = null;
-            $user->password_reset_expires = null;
-            $user->save();
-
-            return response()->json(['success' => true, 'message' => 'Password reset successfully']);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Password reset failed', 'error' => env('APP_DEBUG') ? $e->getMessage() : 'Server error'], 500);
-        }
-    }
 
     public function verifyEmail($token)
     {
