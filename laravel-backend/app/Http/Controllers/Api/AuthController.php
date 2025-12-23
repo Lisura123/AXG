@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Http\Resources\UserResource;
+use App\Notifications\ResetPasswordNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -260,9 +261,22 @@ class AuthController extends Controller
             }
 
             $resetToken = $user->generatePasswordResetToken();
-            return response()->json(['success' => true, 'message' => 'If the email exists, a password reset link has been sent.', 'reset_token' => env('APP_ENV') === 'local' ? $resetToken : null]);
+            
+            // Send password reset email
+            $user->notify(new ResetPasswordNotification($resetToken, $user->email));
+            
+            return response()->json([
+                'success' => true, 
+                'message' => 'If the email exists, a password reset link has been sent.',
+                'reset_token' => env('APP_ENV') === 'local' ? $resetToken : null
+            ]);
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Password reset request failed', 'error' => env('APP_DEBUG') ? $e->getMessage() : 'Server error'], 500);
+            \Log::error('Password reset email failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false, 
+                'message' => 'Password reset request failed', 
+                'error' => env('APP_DEBUG') ? $e->getMessage() : 'Server error'
+            ], 500);
         }
     }
 
