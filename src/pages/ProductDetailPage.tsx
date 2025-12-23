@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Camera, Heart, Package, CheckCircle, Star, ShoppingBag, Share2, ChevronLeft, ChevronRight } from "lucide-react";
 import { productApi, getImageUrl } from "../lib/api";
 import {
@@ -48,13 +48,85 @@ export default function ProductDetailPage({
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const thumbnailContainerRef = useRef<HTMLDivElement>(null);
 
+  // Generate gallery images - combine main image and additional images (limit to 6 total)
+  const galleryImages = product
+    ? [
+        ...(product.image_url ? [product.image_url] : []),
+        ...(product.images && Array.isArray(product.images)
+          ? product.images.filter(img => img && img.trim() !== '').slice(0, 5)
+          : []),
+      ].filter(Boolean)
+    : [];
+
+  // Navigation functions
+  const navigateToNext = () => {
+    if (galleryImages.length > 0) {
+      setSelectedImageIndex((prev) => (prev + 1) % galleryImages.length);
+    }
+  };
+
+  const navigateToPrevious = () => {
+    if (galleryImages.length > 0) {
+      setSelectedImageIndex(
+        (prev) => (prev - 1 + galleryImages.length) % galleryImages.length
+      );
+    }
+  };
+
+  const scrollThumbnails = (direction: "left" | "right") => {
+    if (thumbnailContainerRef.current) {
+      const scrollAmount = 200;
+      thumbnailContainerRef.current.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  // Initial data fetch / wishlist check
   useEffect(() => {
     fetchProductDetails();
     if (user) {
       checkWishlist();
     }
   }, [productId, user]);
+
+  // Keyboard navigation for gallery
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (galleryImages.length <= 1) return;
+
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        navigateToPrevious();
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        navigateToNext();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [galleryImages.length]);
+
+  // Auto-scroll thumbnail into view when selected
+  useEffect(() => {
+    if (thumbnailContainerRef.current && galleryImages.length > 1) {
+      const container = thumbnailContainerRef.current;
+      const thumbnails = container.querySelectorAll("button");
+      const selectedThumbnail = thumbnails[selectedImageIndex];
+
+      if (selectedThumbnail) {
+        selectedThumbnail.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "center",
+        });
+      }
+    }
+  }, [selectedImageIndex, galleryImages.length]);
 
   const fetchProductDetails = async () => {
     try {
@@ -100,14 +172,6 @@ export default function ProductDetailPage({
       showNotification("Failed to update wishlist. Please try again.", "error");
     }
   };
-
-  // Generate gallery images - combine main image and additional images
-  const galleryImages = product 
-    ? [
-        ...(product.image_url ? [product.image_url] : []),
-        ...(product.images && Array.isArray(product.images) ? product.images : [])
-      ].filter(Boolean)
-    : [];
 
   if (loading) {
     return (
@@ -160,14 +224,14 @@ export default function ProductDetailPage({
             <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 p-6 lg:p-10">
               {/* Image Gallery */}
               <div className="space-y-4">
-                {/* Main Image Display */}
-                <div className="relative aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl overflow-hidden group border border-gray-200">
-                  {galleryImages.length > 0 ? (
-                    <>
+                {/* Main Image Display - Enhanced with Zoom */}
+                <div className="relative bg-white rounded-2xl overflow-hidden border-2 border-gray-200 shadow-lg hover:shadow-2xl transition-shadow duration-300">
+                  <div className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-8">
+                    {galleryImages.length > 0 ? (
                       <img
                         src={getImageUrl(galleryImages[selectedImageIndex])}
                         alt={`${product.name} - View ${selectedImageIndex + 1}`}
-                        className="w-full h-full object-contain p-6 transition-all duration-500 group-hover:scale-105"
+                        className="w-full h-full object-contain transition-all duration-500 hover:scale-105 cursor-zoom-in"
                         onError={(e) => {
                           console.log(
                             `Failed to load product image: ${getImageUrl(
@@ -177,69 +241,71 @@ export default function ProductDetailPage({
                           (e.target as HTMLImageElement).style.display = "none";
                         }}
                       />
-                      
-                      {/* Navigation Arrows for Multiple Images */}
-                      {galleryImages.length > 1 && (
-                        <>
-                          <button
-                            onClick={() => setSelectedImageIndex((prev) => 
-                              prev === 0 ? galleryImages.length - 1 : prev - 1
-                            )}
-                            className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
-                          >
-                            <ChevronLeft className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={() => setSelectedImageIndex((prev) => 
-                              prev === galleryImages.length - 1 ? 0 : prev + 1
-                            )}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
-                          >
-                            <ChevronRight className="w-5 h-5" />
-                          </button>
-                        </>
-                      )}
-                    </>
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
+                    ) : (
                       <div className="text-center">
                         <Camera className="w-20 h-20 text-gray-300 mx-auto mb-3" />
                         <span className="text-gray-400 text-sm font-medium">No image available</span>
                       </div>
-                    </div>
-                  )}
-                  
-                  {/* Image counter badge */}
-                  {galleryImages.length > 1 && (
-                    <div className="absolute bottom-4 right-4 bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-semibold">
-                      {selectedImageIndex + 1} / {galleryImages.length}
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
 
-                {/* Thumbnail Navigation */}
+                {/* Thumbnail Strip */}
                 {galleryImages.length > 1 && (
-                  <div className="grid grid-cols-5 gap-3">
-                    {galleryImages.map((img, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setSelectedImageIndex(index)}
-                        className={`aspect-square rounded-lg overflow-hidden border-2 transition-all duration-300 ${
-                          selectedImageIndex === index
-                            ? "border-[#1d1d1b] ring-2 ring-[#1d1d1b]/20 ring-offset-2 scale-105"
-                            : "border-gray-200 hover:border-gray-400 hover:scale-105"
-                        }`}
-                      >
-                        <img
-                          src={getImageUrl(img)}
-                          alt={`${product.name} thumbnail ${index + 1}`}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = "none";
-                          }}
-                        />
-                      </button>
-                    ))}
+                  <div className="relative flex items-center gap-3">
+                    {/* Left Arrow */}
+                    <button
+                      onClick={() => {
+                        navigateToPrevious();
+                        scrollThumbnails("left");
+                      }}
+                      className="flex-shrink-0 p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
+                      aria-label="Previous image"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+
+                    {/* Thumbnail Container */}
+                    <div 
+                      ref={thumbnailContainerRef}
+                      className="flex-1 flex gap-3 overflow-x-auto scroll-smooth scrollbar-hide"
+                      style={{ scrollSnapType: "x mandatory" }}
+                    >
+                      {galleryImages.map((img, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setSelectedImageIndex(index)}
+                          className={`flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-all duration-300 hover:scale-105 ${
+                            selectedImageIndex === index
+                              ? "border-red-500 ring-4 ring-red-200 shadow-lg scale-105"
+                              : "border-gray-300 hover:border-red-400 opacity-75 hover:opacity-100"
+                          }`}
+                          style={{ scrollSnapAlign: "center" }}
+                          aria-label={`View image ${index + 1}`}
+                        >
+                          <img
+                            src={getImageUrl(img)}
+                            alt={`${product.name} thumbnail ${index + 1}`}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = "none";
+                            }}
+                          />
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Right Arrow */}
+                    <button
+                      onClick={() => {
+                        navigateToNext();
+                        scrollThumbnails("right");
+                      }}
+                      className="flex-shrink-0 p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
+                      aria-label="Next image"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
                   </div>
                 )}
               </div>
@@ -248,30 +314,45 @@ export default function ProductDetailPage({
               <div className="flex flex-col">
                 {/* Header Section */}
                 <div className="mb-6">
-                  <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
+                      {/* Badges */}
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {product.is_featured && (
+                          <span className="inline-flex items-center gap-1 bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 px-3 py-1 rounded-full text-xs font-bold uppercase shadow-md">
+                            <Star className="w-3 h-3 fill-current" />
+                            Featured
+                          </span>
+                        )}
+                        {product.category && (
+                          <span className="inline-block bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm font-semibold">
+                            {product.category}
+                          </span>
+                        )}
+                        {product.stock !== undefined && product.stock > 0 && (
+                          <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">
+                            <CheckCircle className="w-3 h-3" />
+                            In Stock
+                          </span>
+                        )}
+                      </div>
                       <h1 className="text-3xl lg:text-4xl font-bold text-[#1d1d1b] mb-2 leading-tight">
                         {product.name}
                       </h1>
-                      {product.category && (
-                        <span className="inline-block bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium">
-                          {product.category}
-                        </span>
-                      )}
                     </div>
                     <div className="flex gap-2 ml-4">
                       <button
                         onClick={toggleWishlist}
-                        className={`p-3 rounded-full transition-all duration-300 hover:scale-110 ${
+                        className={`p-3 rounded-full transition-all duration-300 hover:scale-110 active:scale-95 ${
                           isInWishlist
-                            ? "bg-red-50 text-red-600 shadow-lg shadow-red-100"
-                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                            ? "bg-gradient-to-br from-red-50 to-red-100 text-red-600 shadow-lg shadow-red-200 animate-pulse"
+                            : "bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-500"
                         }`}
                         title={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
                       >
                         <Heart
-                          className={`w-6 h-6 ${
-                            isInWishlist ? "fill-current" : ""
+                          className={`w-6 h-6 transition-all ${
+                            isInWishlist ? "fill-current scale-110" : ""
                           }`}
                         />
                       </button>
@@ -280,7 +361,7 @@ export default function ProductDetailPage({
                           navigator.clipboard.writeText(window.location.href);
                           showNotification("Link copied to clipboard!", "success");
                         }}
-                        className="p-3 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all duration-300 hover:scale-110"
+                        className="p-3 rounded-full bg-gray-100 text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-all duration-300 hover:scale-110 active:scale-95"
                         title="Share product"
                       >
                         <Share2 className="w-6 h-6" />
@@ -306,8 +387,11 @@ export default function ProductDetailPage({
 
                 {/* Description */}
                 <div className="mb-8 pb-8 border-b border-gray-200">
-                  <h3 className="text-lg font-semibold text-[#1d1d1b] mb-3">About This Product</h3>
-                  <p className="text-gray-700 leading-relaxed">
+                  <h3 className="text-xl font-bold text-[#1d1d1b] mb-4 flex items-center">
+                    <div className="w-1 h-6 bg-red-500 mr-3 rounded-full"></div>
+                    About This Product
+                  </h3>
+                  <p className="text-gray-700 leading-relaxed text-base">
                     {product.description}
                   </p>
                 </div>
@@ -315,19 +399,20 @@ export default function ProductDetailPage({
                 {/* Key Features */}
                 {product.features && product.features.length > 0 && (
                   <div className="mb-8 pb-8 border-b border-gray-200">
-                    <h3 className="text-lg font-semibold text-[#1d1d1b] mb-4">
+                    <h3 className="text-xl font-bold text-[#1d1d1b] mb-4 flex items-center">
+                      <div className="w-1 h-6 bg-green-500 mr-3 rounded-full"></div>
                       Key Features
                     </h3>
                     <ul className="grid gap-3">
                       {product.features.map(
                         (feature: string, index: number) => (
-                          <li key={index} className="flex items-start group">
+                          <li key={index} className="flex items-start group hover:bg-green-50 p-3 rounded-lg transition-all duration-300">
                             <div className="flex-shrink-0 mt-0.5">
-                              <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center group-hover:bg-green-200 transition-colors">
-                                <CheckCircle className="w-4 h-4 text-green-600" />
+                              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center group-hover:scale-110 group-hover:shadow-lg transition-all duration-300">
+                                <CheckCircle className="w-5 h-5 text-green-600" />
                               </div>
                             </div>
-                            <span className="ml-3 text-gray-700 leading-relaxed">{feature}</span>
+                            <span className="ml-3 text-gray-700 leading-relaxed font-medium">{feature}</span>
                           </li>
                         )
                       )}
@@ -336,18 +421,19 @@ export default function ProductDetailPage({
                 )}
 
                 {/* CTA Buttons */}
-                <div className="mt-auto space-y-3">
+                <div className="mt-auto space-y-3 sticky bottom-4 bg-white/95 backdrop-blur-sm p-4 -mx-4 -mb-4 rounded-xl shadow-lg">
                   <button
                     onClick={() => onNavigate("where-to-buy")}
-                    className="w-full bg-gradient-to-r from-[#1d1d1b] to-[#404040] text-white py-4 rounded-xl font-semibold hover:shadow-xl transition-all duration-300 flex items-center justify-center space-x-2 group"
+                    className="w-full bg-gradient-to-r from-[#1d1d1b] via-[#2d2d2b] to-[#404040] text-white py-4 px-6 rounded-xl font-bold hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center justify-center space-x-2 group relative overflow-hidden"
                   >
-                    <ShoppingBag className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                    <span>Where to Buy</span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-red-500/0 via-red-500/20 to-red-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                    <ShoppingBag className="w-5 h-5 group-hover:scale-110 transition-transform relative z-10" />
+                    <span className="relative z-10">Where to Buy</span>
                   </button>
                   
                   <button
                     onClick={() => onNavigate("contact")}
-                    className="w-full bg-white border-2 border-gray-300 text-gray-700 py-4 rounded-xl font-semibold hover:border-[#1d1d1b] hover:bg-gray-50 transition-all duration-300"
+                    className="w-full bg-white border-2 border-gray-300 text-gray-700 py-4 px-6 rounded-xl font-bold hover:border-[#1d1d1b] hover:bg-gray-50 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 hover:shadow-lg"
                   >
                     Contact Us for Details
                   </button>
@@ -356,9 +442,10 @@ export default function ProductDetailPage({
             </div>
 
             {/* Specifications Section */}
-            <div className="border-t border-gray-200 bg-gradient-to-br from-gray-50 to-white p-8 lg:p-10">
+            <div className="border-t-2 border-gray-200 bg-gradient-to-br from-gray-50 via-white to-gray-50 p-8 lg:p-10">
               <div className="flex items-center justify-between mb-8">
-                <h3 className="text-2xl lg:text-3xl font-bold text-[#1d1d1b]">
+                <h3 className="text-2xl lg:text-3xl font-bold text-[#1d1d1b] flex items-center">
+                  <div className="w-2 h-8 bg-gradient-to-b from-red-500 to-[#1d1d1b] mr-4 rounded-full"></div>
                   Specifications
                 </h3>
                 {product.sku && (
@@ -382,15 +469,15 @@ export default function ProductDetailPage({
                         ([key, value]) => (
                           <div
                             key={key}
-                            className="bg-white rounded-xl p-5 border border-gray-200 hover:shadow-lg hover:border-gray-300 transition-all duration-300"
+                            className="bg-white rounded-xl p-5 border-2 border-gray-200 hover:shadow-xl hover:border-red-300 hover:scale-[1.02] transition-all duration-300 group"
                           >
                             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                              <span className="font-semibold text-gray-700 text-sm uppercase tracking-wide">
+                              <span className="font-bold text-gray-600 text-sm uppercase tracking-wider group-hover:text-red-600 transition-colors">
                                 {key
                                   .replace(/([A-Z])/g, " $1")
                                   .replace(/^./, (str) => str.toUpperCase())}
                               </span>
-                              <span className="text-gray-900 font-bold text-base">
+                              <span className="text-gray-900 font-bold text-lg group-hover:text-[#1d1d1b] transition-colors">
                                 {value as string}
                               </span>
                             </div>

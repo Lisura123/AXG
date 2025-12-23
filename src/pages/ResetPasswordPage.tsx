@@ -29,6 +29,13 @@ export default function ResetPasswordPage({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
+  // Check if token exists
+  useEffect(() => {
+    if (!token || token.trim() === '') {
+      setError("No reset token provided. Please use the link from your email.");
+    }
+  }, [token]);
+
   // Validate password strength
   const validatePassword = (password: string): string[] => {
     const errors: string[] = [];
@@ -90,7 +97,7 @@ export default function ResetPasswordPage({
 
     try {
       const response = await fetch(
-        `${API_BASE_URL}/users/reset-password`,
+        `${API_BASE_URL}/reset-password`,
         {
           method: "POST",
           headers: {
@@ -105,13 +112,22 @@ export default function ResetPasswordPage({
 
       const data = await response.json();
 
-      if (response.ok) {
+      if (response.ok && data.success) {
         setIsSuccess(true);
       } else {
-        setError(data.message || "Failed to reset password");
+        const errorMessage = data.message || "Failed to reset password";
+        setError(errorMessage);
+        
+        // Log for debugging
+        console.error('Password reset failed:', {
+          status: response.status,
+          message: errorMessage,
+          tokenLength: token?.length
+        });
       }
     } catch (err) {
-      setError("Network error. Please try again.");
+      console.error('Network error during password reset:', err);
+      setError("Network error. Please check your connection and try again.");
     } finally {
       setLoading(false);
     }
@@ -120,22 +136,24 @@ export default function ResetPasswordPage({
   if (isSuccess) {
     return (
       <PageTransition>
-        <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
           <div className="sm:mx-auto sm:w-full sm:max-w-md">
-            <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+            <div className="bg-white py-8 px-4 shadow-xl rounded-2xl sm:px-10 border border-gray-200">
               <div className="text-center">
-                <CheckCircle className="mx-auto h-12 w-12 text-green-500" />
-                <h2 className="mt-4 text-2xl font-bold text-gray-900">
+                <div className="mx-auto h-16 w-16 rounded-full bg-gradient-to-br from-green-400 to-green-500 flex items-center justify-center shadow-lg">
+                  <CheckCircle className="h-10 w-10 text-white" />
+                </div>
+                <h2 className="mt-6 text-2xl font-bold text-gray-900">
                   Password Reset Successful!
                 </h2>
-                <p className="mt-2 text-sm text-gray-600">
+                <p className="mt-3 text-sm text-gray-600">
                   Your password has been successfully updated. You can now login
                   with your new password.
                 </p>
-                <div className="mt-6">
+                <div className="mt-8">
                   <button
                     onClick={() => onNavigate("login")}
-                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-gradient-to-r from-[#1d1d1b] to-[#404040] hover:from-[#2d2d2b] hover:to-[#505050] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-300 hover:shadow-lg"
                   >
                     Go to Login
                   </button>
@@ -150,20 +168,22 @@ export default function ResetPasswordPage({
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="text-center">
-            <Lock className="mx-auto h-12 w-12 text-blue-600" />
+            <div className="mx-auto h-16 w-16 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
+              <Lock className="h-8 w-8 text-white" />
+            </div>
             <h2 className="mt-6 text-3xl font-bold text-gray-900">
               Reset your password
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              Enter your new password below.
+              Enter your new password below to secure your account.
             </p>
           </div>
 
           <div className="mt-8">
-            <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+            <div className="bg-white py-8 px-4 shadow-xl rounded-2xl sm:px-10 border border-gray-200">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label
@@ -288,8 +308,16 @@ export default function ResetPasswordPage({
                   <div className="rounded-md bg-red-50 p-4">
                     <div className="flex">
                       <AlertCircle className="h-5 w-5 text-red-400" />
-                      <div className="ml-3">
+                      <div className="ml-3 flex-1">
                         <p className="text-sm text-red-800">{error}</p>
+                        {(error.includes('expired') || error.includes('Invalid')) && (
+                          <button
+                            onClick={() => onNavigate("forgot-password")}
+                            className="mt-2 text-sm font-medium text-red-600 hover:text-red-500 underline"
+                          >
+                            Request a new reset link
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -303,7 +331,7 @@ export default function ResetPasswordPage({
                       validationErrors.length > 0 ||
                       formData.password !== formData.confirmPassword
                     }
-                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:shadow-lg"
                   >
                     {loading ? (
                       <div className="flex items-center">

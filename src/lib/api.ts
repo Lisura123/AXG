@@ -34,27 +34,33 @@ export const getImageUrl = (imageURL: string | undefined): string => {
   if (!imageURL) return "";
 
   let finalUrl = "";
+  let path = imageURL;
+
+  // Normalize paths like "uploads/filename.jpg" → "/uploads/filename.jpg"
+  if (path.startsWith("uploads/")) {
+    path = `/${path}`;
+  }
 
   // If it's already a full URL (http/https), use as is
-  if (imageURL.startsWith("http://") || imageURL.startsWith("https://")) {
-    finalUrl = imageURL;
+  if (path.startsWith("http://") || path.startsWith("https://")) {
+    finalUrl = path;
   }
   // If it's a data URL (base64), use as is
-  else if (imageURL.startsWith("data:")) {
-    finalUrl = imageURL;
+  else if (path.startsWith("data:")) {
+    finalUrl = path;
   }
   // If it's a server path (starts with /uploads), use API endpoint
-  else if (imageURL.startsWith("/uploads/")) {
-    const filename = imageURL.replace("/uploads/", "");
+  else if (path.startsWith("/uploads/")) {
+    const filename = path.replace("/uploads/", "");
     finalUrl = `${API_BASE_URL}/products/image/${filename}`;
   }
   // If it's a relative path, assume it's from public folder (frontend)
-  else if (imageURL.startsWith("/")) {
-    finalUrl = imageURL; // Let the frontend handle public folder paths
+  else if (path.startsWith("/")) {
+    finalUrl = path; // Let the frontend handle public folder paths
   }
   // Default case - might be a filename, treat as uploads path
-  else if (imageURL.includes(".")) {
-    finalUrl = `${API_BASE_URL}/products/image/${imageURL}`;
+  else if (path.includes(".")) {
+    finalUrl = `${API_BASE_URL}/products/image/${path}`;
   }
 
   console.log(`🖼️ Image URL conversion: "${imageURL}" → "${finalUrl}"`);

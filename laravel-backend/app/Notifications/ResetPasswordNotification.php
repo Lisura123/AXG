@@ -12,14 +12,16 @@ class ResetPasswordNotification extends Notification
 
     protected $token;
     protected $email;
+    protected $userName;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct($token, $email)
+    public function __construct($token, $email, $userName = null)
     {
         $this->token = $token;
         $this->email = $email;
+        $this->userName = $userName;
     }
 
     /**
@@ -40,14 +42,16 @@ class ResetPasswordNotification extends Notification
         $frontendUrl = rtrim($frontendUrl, '/');
         $resetUrl = $frontendUrl . '/?page=reset-password&token=' . urlencode($this->token);
         
+        // Get user name, fallback to 'there' if not provided
+        $userName = $this->userName ?: ($notifiable->name ?? 'there');
+        
         return (new MailMessage)
-            ->subject('Reset Password - AXG Photo')
-            ->greeting('Hello!')
-            ->line('You are receiving this email because we received a password reset request for your account.')
-            ->action('Reset Password', $resetUrl)
-            ->line('This password reset link will expire in 60 minutes.')
-            ->line('If you did not request a password reset, no further action is required.')
-            ->salutation('Best regards, AXG Photo Team');
+            ->subject('Reset Your Password - AXG Photo')
+            ->view('emails.reset-password', [
+                'userName' => $userName,
+                'resetUrl' => $resetUrl,
+                'token' => $this->token
+            ]);
     }
 
     /**

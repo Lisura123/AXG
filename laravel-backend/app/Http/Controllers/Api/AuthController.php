@@ -262,8 +262,8 @@ class AuthController extends Controller
 
             $resetToken = $user->generatePasswordResetToken();
             
-            // Send password reset email
-            $user->notify(new ResetPasswordNotification($resetToken, $user->email));
+            // Send password reset email with user's name
+            $user->notify(new ResetPasswordNotification($resetToken, $user->email, $user->name));
             
             return response()->json([
                 'success' => true, 

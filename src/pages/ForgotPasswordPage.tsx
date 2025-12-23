@@ -30,7 +30,7 @@ export default function ForgotPasswordPage({
 
     try {
       const response = await fetch(
-        `${API_BASE_URL}/users/forgot-password`,
+        `${API_BASE_URL}/forgot-password`,
         {
           method: "POST",
           headers: {

@@ -31,6 +31,29 @@ function AppContent() {
   const [currentPage, setCurrentPage] = useState("home");
   const [pageData, setPageData] = useState<PageData>({});
 
+  // Check URL parameters immediately on component load
+  const checkUrlParams = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const page = urlParams.get("page");
+    const token = urlParams.get("token");
+    const productId = urlParams.get("productId");
+
+    if (page === "reset-password" && token) {
+      setCurrentPage("reset-password");
+      setPageData({ token });
+      return true;
+    } else if (page === "product-detail" && productId) {
+      setCurrentPage("product-detail");
+      setPageData({ productId });
+      return true;
+    } else if (page) {
+      setCurrentPage(page);
+      return true;
+    }
+    
+    return false;
+  };
+
   const handleNavigate = (page: string, data?: PageData) => {
     setCurrentPage(page);
     setPageData(data || {});
@@ -55,20 +78,29 @@ function AppContent() {
 
   // Handle URL parameters and page routing
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const page = urlParams.get("page");
-    const token = urlParams.get("token");
-    const productId = urlParams.get("productId");
+    checkUrlParams();
+  }, []);
 
-    if (page === "reset-password" && token) {
-      setCurrentPage("reset-password");
-      setPageData({ token });
-    } else if (page === "product-detail" && productId) {
-      setCurrentPage("product-detail");
-      setPageData({ productId });
-    } else if (page) {
-      setCurrentPage(page);
-    }
+  // Re-check URL params when window location changes
+  useEffect(() => {
+    const handleLocationChange = () => {
+      checkUrlParams();
+    };
+
+    // Check on visibility change (when tab becomes active)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        checkUrlParams();
+      }
+    };
+
+    window.addEventListener('popstate', handleLocationChange);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   if (loading) {
