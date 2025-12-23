@@ -289,10 +289,37 @@ class AuthController extends Controller
 
         try {
             $hashedToken = hash('sha256', $request->token);
-            $user = User::where('password_reset_token', $hashedToken)->where('password_reset_expires', '>', now())->first();
+            \Log::info('Password reset attempt', [
+                'token_length' => strlen($request->token),
+                'hashed_token' => substr($hashedToken, 0, 10) . '...',
+            ]);
+            
+            $user = User::where('password_reset_token', $hashedToken)
+                       ->where('password_reset_expires', '>', now())
+                       ->first();
 
             if (!$user) {
-                return response()->json(['success' => false, 'message' => 'Invalid or expired reset token'], 400);
+                // Check if token exists but expired
+                $expiredUser = User::where('password_reset_token', $hashedToken)->first();
+                if ($expiredUser) {
+                    return response()->json(['success' => false, 'message' => 'This password reset link has expired. Please request a new one.'], 400);
+                }
+                return response()->json(['success' => false, 'message' => 'Invalid reset token. Please request a new password reset link.'], 400);
+            }
+
+            $user->password = $request->password;
+            $user->password_reset_token = null;
+            $user->password_reset_expires = null;
+            $user->save();
+
+            \Log::info('Password reset successful for user: ' . $user->email);
+
+            return response()->json(['success' => true, 'message' => 'Password reset successfully']);
+        } catch (\Exception $e) {
+            \Log::error('Password reset failed: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Password reset failed', 'error' => env('APP_DEBUG') ? $e->getMessage() : 'Server error'], 500);
+        }
+    }
             }
 
             $user->password = $request->password;
