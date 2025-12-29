@@ -5,6 +5,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Loading from "./components/Loading";
 import ScrollToTop from "./components/ScrollToTop";
+import SnowEffect from "./components/SnowEffect";
 import HomePage from "./pages/HomePage";
 import ProductsPage from "./pages/ProductsPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
@@ -109,6 +110,7 @@ function AppContent() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <SnowEffect />
       <Navbar currentPage={currentPage} onNavigate={handleNavigate} />
       <main className="flex-grow">
         {currentPage === "home" && <HomePage onNavigate={handleNavigate} />}

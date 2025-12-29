@@ -11,9 +11,23 @@ import {
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://www.axgphoto.com/api";
+
 interface NavbarProps {
   currentPage: string;
   onNavigate: (page: string, data?: any) => void;
+}
+
+interface CategorySubmenu {
+  name: string;
+  category: string;
+}
+
+interface ProductCategory {
+  name: string;
+  category: string | null;
+  hasSubmenu: boolean;
+  submenu?: CategorySubmenu[];
 }
 
 export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
@@ -21,6 +35,9 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
   const [showProductsDropdown, setShowProductsDropdown] = useState(false);
   const [showLensFiltersSubmenu, setShowLensFiltersSubmenu] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [productCategories, setProductCategories] = useState<ProductCategory[]>([
+    { name: "All Products", category: null, hasSubmenu: false }
+  ]);
   const { user, isAdmin, signOut } = useAuth();
 
   // Timeout refs for better hover control
@@ -74,6 +91,46 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/categories`);
+        const data = await response.json();
+        
+        if (data.success && data.data.categories) {
+          const dynamicCategories: ProductCategory[] = [
+            { name: "All Products", category: null, hasSubmenu: false }
+          ];
+          
+          data.data.categories.forEach((cat: any) => {
+            const categoryItem: ProductCategory = {
+              name: cat.name,
+              category: cat.name,
+              hasSubmenu: cat.has_submenu || false,
+            };
+            
+            if (cat.has_submenu && cat.submenu) {
+              categoryItem.submenu = cat.submenu.map((sub: any) => ({
+                name: sub.name,
+                category: sub.category || sub.name,
+              }));
+            }
+            
+            dynamicCategories.push(categoryItem);
+          });
+          
+          setProductCategories(dynamicCategories);
+        }
+      } catch (error) {
+        console.error('Failed to fetch categories:', error);
+        // Keep default "All Products" if fetch fails
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
   // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
@@ -92,28 +149,6 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
     { id: "about", label: "About" },
     { id: "where-to-buy", label: "Where to Buy" },
     { id: "contact", label: "Contact" },
-  ];
-
-  const productCategories = [
-    { name: "All Products", category: null, hasSubmenu: false },
-    { name: "Batteries", category: "Batteries", hasSubmenu: false },
-    { name: "Chargers", category: "Chargers", hasSubmenu: false },
-    { name: "Card Readers", category: "Card Readers", hasSubmenu: false },
-    {
-      name: "Lens Filters",
-      category: "Lens Filters",
-      hasSubmenu: true,
-      submenu: [
-        { name: "58mm Filters", category: "58mm" },
-        { name: "67mm Filters", category: "67mm" },
-        { name: "77mm Filters", category: "77mm" },
-      ],
-    },
-    {
-      name: "Camera Backpacks",
-      category: "Camera Backpacks",
-      hasSubmenu: false,
-    },
   ];
 
   const handleSignOut = async () => {

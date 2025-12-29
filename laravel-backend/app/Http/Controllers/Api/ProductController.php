@@ -704,6 +704,32 @@ class ProductController extends Controller
                                  ->orderBy('name')
                                  ->get();
 
+            // If no categories in the database, fetch from products
+            if ($categories->isEmpty()) {
+                $productCategories = Product::where('is_active', true)
+                    ->whereNotNull('category')
+                    ->distinct()
+                    ->pluck('category')
+                    ->filter()
+                    ->map(function($categoryName) {
+                        return [
+                            'id' => null,
+                            'name' => $categoryName,
+                            'has_submenu' => false,
+                            'submenu' => null,
+                            'is_active' => true,
+                            'created_at' => null,
+                            'updated_at' => null,
+                        ];
+                    })
+                    ->values();
+
+                return response()->json([
+                    'success' => true,
+                    'data' => ['categories' => $productCategories],
+                ]);
+            }
+
             return response()->json([
                 'success' => true,
                 'data' => ['categories' => $categories],
